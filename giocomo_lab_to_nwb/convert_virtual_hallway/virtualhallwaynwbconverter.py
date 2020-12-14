@@ -1,5 +1,7 @@
 """Authors: Szonja Weigl, Luiz Tauffer and Ben Dichter."""
-import yaml
+from datetime import datetime
+from pathlib import Path
+
 from nwb_conversion_tools import NWBConverter, SpikeGLXRecordingInterface
 from .virtualhallwaybehaviordatainterface import VirtualHallwayDataInterface
 
@@ -13,15 +15,26 @@ class VirtualHallwayNWBConverter(NWBConverter):
     )
 
     def get_metadata(self):
-        """Load task specific metadata from metafile.yml"""
+        """Load task specific metadata from .meta file"""
 
         metadata = super().get_metadata()
-        with open('metafile.yml', 'r') as meta_file:
-            meta_config = yaml.safe_load(meta_file)
 
-        metadata.update(Subject=dict())
-        for field in metadata:
-            [metadata[field].update({k: meta_config[field][k]}) for k in
-             meta_config[field] if meta_config[field][k] != 'ADDME']
+        bin_file_path = Path(self.data_interface_objects['SpikeGLXRecording'].source_data['file_path'])
+        meta_file_path = bin_file_path.with_suffix('.meta')
+
+        if meta_file_path.is_file():
+            with meta_file_path.open('r') as meta_file:
+                metadata_from_bin = meta_file.read().splitlines()
+
+            metadata_dict = {x.split('=')[0]: x.split('=')[1] for x in metadata_from_bin}
+            file_create_data = metadata_dict['fileCreateTime']
+            session_start_time = datetime.fromisoformat(file_create_data)
+
+            metadata['NWBFile'].update(
+                session_start_time=session_start_time,
+            )
+
+        else:
+            print(f"Warning: no meta file detected at {bin_file_path.parent}!")
 
         return metadata
