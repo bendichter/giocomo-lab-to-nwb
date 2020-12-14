@@ -27,8 +27,8 @@ class VirtualHallwayNWBConverter(NWBConverter):
                 metadata_from_bin = meta_file.read().splitlines()
 
             metadata_dict = {x.split('=')[0]: x.split('=')[1] for x in metadata_from_bin}
-            file_create_data = metadata_dict['fileCreateTime']
-            session_start_time = datetime.fromisoformat(file_create_data)
+            file_create_date = metadata_dict['fileCreateTime']
+            session_start_time = datetime.fromisoformat(file_create_date)
 
             metadata['NWBFile'].update(
                 session_start_time=session_start_time,
