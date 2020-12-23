@@ -1,15 +1,15 @@
 import datetime
 from glob import glob
-from os import path
-from tqdm import tqdm
 
 import h5py
 import numpy as np
-from ndx_task import Task, Tasks
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.behavior import Position, SpatialSeries, EyeTracking
 from pynwb.file import Subject
 from scipy.io import loadmat
+from tqdm import tqdm
+from pytz import timezone
+year = '19'
 
 
 def get_data(file: h5py.File, str_: str, row=0):
@@ -39,9 +39,8 @@ def convert_track_file(fpath: str):
 
     all_spike_times = [file[x[0]][:].ravel() for x in cell_info['spike_times']]
 
-    year = '20'
-
     session_start_time = datetime.datetime.strptime(year + session_id[:4], '%y%m%d')
+    session_start_time = timezone('US/Pacific').localize(session_start_time)
 
     nwbfile = NWBFile(
         session_description='straight track.',
@@ -50,21 +49,7 @@ def convert_track_file(fpath: str):
         lab='Giocomo',
         institution='Stanford University',
         experiment_description='trial contrast: {}'.format(int(trial_contrast[0])),
-        subject=Subject(
-            subject_id=animal_id
-        )
-    )
-
-    nwbfile.add_lab_meta_data(
-        Tasks(
-            tasks=[
-                Task(
-                    name='straight track',
-                    description='subject running on straight track in virtual reality',
-                    navigation=True
-                )
-            ]
-        )
+        subject=Subject(subject_id=animal_id)
     )
 
     behavior = nwbfile.create_processing_module(
@@ -119,8 +104,12 @@ def convert_track_file(fpath: str):
         id_ = int(cell_id.split('_')[-1])
         nwbfile.add_unit(spike_times=spike_times, id=id_)
 
-    with NWBHDF5IO(fpath[:-3] + 'nwb', 'w') as io:
+    with NWBHDF5IO(fpath.split('/')[-1][:-3] + 'nwb', 'w') as io:
         io.write(nwbfile)
+
+    # test read
+    with NWBHDF5IO(fpath.split('/')[-1][:-3] + 'nwb', 'r') as io:
+        io.read()
 
 
 def convert_freely_moving_with_inertial_sensor(fpath: str):
@@ -146,8 +135,8 @@ def convert_freely_moving_with_inertial_sensor(fpath: str):
         row = session[0]
         subject_id, session_id = matdata['cell_info']['cell_id'][0][row][0].split('_')[:2]
 
-        year = '20'
         session_start_time = datetime.datetime.strptime(year + session_id[:4], '%y%m%d')
+        session_start_time = timezone('US/Pacific').localize(session_start_time)
 
         data = {x: matdata['cell_info'][x][0][row].ravel() for x in
                 (
@@ -172,19 +161,8 @@ def convert_freely_moving_with_inertial_sensor(fpath: str):
             session_start_time=session_start_time,
             lab='Giocomo',
             institution='Stanford University',
-            experiment_description='arena size (cm): {}'.format(data['arena_size_cm'])
-        )
-
-        nwbfile.add_lab_meta_data(
-            Tasks(
-                tasks=[
-                    Task(
-                        name='free exploration',
-                        description='subject freely exploring environment',
-                        navigation=True
-                    )
-                ]
-            )
+            experiment_description='arena size (cm): {}'.format(data['arena_size_cm']),
+            subject=Subject(subject_id=subject_id)
         )
 
         behavior = nwbfile.create_processing_module(
@@ -248,6 +226,10 @@ def convert_freely_moving_with_inertial_sensor(fpath: str):
         with NWBHDF5IO(subject_id + session_id + '.nwb', 'w') as io:
             io.write(nwbfile)
 
+        # test read
+        with NWBHDF5IO(subject_id + session_id + '.nwb', 'r') as io:
+            io.read()
+
 
 def convert_freely_moving_without_inertial_sensor(fpath: str):
 
@@ -279,7 +261,6 @@ def convert_freely_moving_without_inertial_sensor(fpath: str):
         all_spike_times = [get_data(file, 'spike_times', row) for row in session]
         cell_ids = [get_str(file, 'cell_id', row).split('_')[-1] for row in session]
 
-        year = '20'
         if subject_id in ('Reeves', 'Ringo'):  # e.g. 'Ringo_29_July_04+01+02+03_T1C2'
             components = get_str(file, 'cell_id', row).split('_')
             session_id = '_'.join(components[1:-1])
@@ -302,25 +283,16 @@ def convert_freely_moving_without_inertial_sensor(fpath: str):
             session_id = get_str(file, 'cell_id', row).split('_')[1]
             session_start_time = datetime.datetime.strptime(year + session_id[:4], '%y%m%d')
 
+        session_start_time = timezone('US/Pacific').localize(session_start_time)
+
         nwbfile = NWBFile(
             session_description='free exploration.',
             identifier=session_id,
             session_start_time=session_start_time,
             lab='Giocomo',
             institution='Stanford University',
-            experiment_description='arena size (cm): {}'.format(data['arena_size_cm'])
-        )
-
-        nwbfile.add_lab_meta_data(
-            Tasks(
-                tasks=[
-                    Task(
-                        name='free exploration',
-                        description='subject freely exploring environment',
-                        navigation=True
-                    )
-                ]
-            )
+            experiment_description='arena size (cm): {}'.format(data['arena_size_cm']),
+            subject=Subject(subject_id=subject_id)
         )
 
         behavior = nwbfile.create_processing_module(
@@ -363,23 +335,16 @@ def convert_freely_moving_without_inertial_sensor(fpath: str):
         with NWBHDF5IO(subject_id + session_id + '.nwb', 'w') as io:
             io.write(nwbfile)
 
-
-#cell_info_files = glob('/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/cell_info_session*.mat')
-#for cell_info_file in cell_info_files:
-#    convert_track_file(cell_info_file)
-
-#convert_all('/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src')
-#convert_freely_moving('/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/Freely_moving_data_with_inertial_sensor.mat')
-#fpath = '/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/Freely_moving_data_without_inertial_sensor.mat'
-#convert_freely_moving_without_inertial_sensor(fpath)
+        # test read
+        with NWBHDF5IO(subject_id + session_id + '.nwb', 'r') as io:
+            io.read()
 
 
-#convert_freely_moving_without_inertial_sensor('/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/Freely_moving_data_without_inertial_sensor.mat')
-#convert_freely_moving_with_inertial_sensor(
-# '/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/Freely_moving_data_with_inertial_sensor.mat')
+cell_info_files = glob('/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/cell_info_session*.mat')
+for cell_info_file in tqdm(cell_info_files):
+    convert_track_file(cell_info_file)
 
-#cell_info_files = glob('/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/cell_info_session*.mat')
-#for cell_info_file in cell_info_files:
-#    convert_track_file(cell_info_file)
-
-convert_track_file('/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/cell_info_session11.mat')
+convert_freely_moving_without_inertial_sensor(
+    '/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/Freely_moving_data_without_inertial_sensor.mat')
+convert_freely_moving_with_inertial_sensor(
+    '/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/Freely_moving_data_with_inertial_sensor.mat')
