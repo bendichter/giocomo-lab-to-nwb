@@ -6,9 +6,10 @@ import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
 from pynwb.behavior import Position, SpatialSeries, EyeTracking
 from pynwb.file import Subject
+from pytz import timezone
 from scipy.io import loadmat
 from tqdm import tqdm
-from pytz import timezone
+
 year = '19'
 
 

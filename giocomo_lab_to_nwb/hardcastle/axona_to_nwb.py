@@ -1,11 +1,9 @@
 import datetime
 
 import numpy as np
-from pynwb.ecephys import SpikeEventSeries
 from pynwb import NWBFile
 
 from ..read_axona import importspikes
-
 
 spikes_fpath = '/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/raw/052301.6'
 
