@@ -1,116 +1,17 @@
 import datetime
-from glob import glob
 
 import h5py
 import numpy as np
 from pynwb import NWBFile, NWBHDF5IO, TimeSeries
-from pynwb.behavior import Position, SpatialSeries, EyeTracking
+from pynwb.behavior import Position, SpatialSeries
 from pynwb.file import Subject
 from pytz import timezone
 from scipy.io import loadmat
 from tqdm import tqdm
 
+from .utils import get_data, get_str
+
 year = '19'
-
-
-def get_data(file: h5py.File, str_: str, row=0):
-    return file[file['cell_info'][str_][row][0]][:].ravel()
-
-
-def get_str(file: h5py.File, str_: str, row=0) -> str:
-    return ''.join([chr(x) for x in file[file['cell_info'][str_][row][0]]])
-
-
-def convert_track_file(fpath: str):
-    file = h5py.File(fpath, 'r')
-    cell_info = file['cell_info']
-
-    cell_ids = [''.join([chr(x[0]) for x in file[x[0]]]) for x in cell_info['cell_id']]
-    animal_id = get_str(file, 'animal_id')
-    session_id = get_str(file, 'session_id')
-
-    times = get_data(file, 'time')
-    body_pos = get_data(file, 'body_position')
-    body_speed = get_data(file, 'body_speed')
-    horizontal_eye_pos = get_data(file, 'horizontal_eye_position')
-    vertial_eye_pos = get_data(file, 'vertical_eye_position')
-    horizontal_eye_vel = get_data(file, 'horiztonal_eye_velocity')
-    vertial_eye_vel = get_data(file, 'vertical_eye_velocity')
-    trial_contrast = get_data(file, 'trial_contrast')
-
-    all_spike_times = [file[x[0]][:].ravel() for x in cell_info['spike_times']]
-
-    session_start_time = datetime.datetime.strptime(year + session_id[:4], '%y%m%d')
-    session_start_time = timezone('US/Pacific').localize(session_start_time)
-
-    nwbfile = NWBFile(
-        session_description='straight track.',
-        identifier=session_id,
-        session_start_time=session_start_time,
-        lab='Giocomo',
-        institution='Stanford University',
-        experiment_description='trial contrast: {}'.format(int(trial_contrast[0])),
-        subject=Subject(subject_id=animal_id)
-    )
-
-    behavior = nwbfile.create_processing_module(
-        name='behavior',
-        description='contains processed behavioral data'
-    )
-
-    spatial_series = SpatialSeries(
-        name='position',
-        data=body_pos,
-        timestamps=times,
-        conversion=.01,
-        reference_frame='on track. Position is in VR.'
-    )
-
-    behavior.add(
-        Position(
-            spatial_series=spatial_series
-        )
-    )
-
-    behavior.add(
-        TimeSeries(
-            name='body_speed',
-            data=body_speed,
-            timestamps=spatial_series,
-            unit='cm/s'
-        )
-    )
-
-    behavior.add(
-        EyeTracking(
-            spatial_series=SpatialSeries(
-                name='eye_position',
-                data=np.c_[horizontal_eye_pos, vertial_eye_pos],
-                timestamps=spatial_series,
-                reference_frame='unknown'
-            )
-        )
-    )
-
-    behavior.add(
-        TimeSeries(
-            name='eye velocity',
-            data=np.c_[horizontal_eye_vel, vertial_eye_vel],
-            timestamps=spatial_series,
-            unit='unknown'
-        )
-    )
-
-    for spike_times, cell_id in zip(all_spike_times, cell_ids):
-        id_ = int(cell_id.split('_')[-1])
-        nwbfile.add_unit(spike_times=spike_times, id=id_)
-
-    with NWBHDF5IO(fpath.split('/')[-1][:-3] + 'nwb', 'w') as io:
-        io.write(nwbfile)
-
-    # test read
-    with NWBHDF5IO(fpath.split('/')[-1][:-3] + 'nwb', 'r') as io:
-        io.read()
 
 
 def convert_freely_moving_with_inertial_sensor(fpath: str):
@@ -160,7 +61,7 @@ def convert_freely_moving_with_inertial_sensor(fpath: str):
             session_description='free exploration.',
             identifier=session_id,
             session_start_time=session_start_time,
-            lab='Giocomo',
+            lab='Giocomo Lab',
             institution='Stanford University',
             experiment_description='arena size (cm): {}'.format(data['arena_size_cm']),
             subject=Subject(subject_id=subject_id)
@@ -173,10 +74,7 @@ def convert_freely_moving_with_inertial_sensor(fpath: str):
 
         spatial_series = SpatialSeries(
             name='position',
-            data=np.c_[
-                data['body_position_x'],
-                data['body_position_y']
-            ],
+            data=np.c_[data['body_position_x'], data['body_position_y']],
             timestamps=data['time'],
             conversion=.01,
             reference_frame='unknown'
@@ -253,8 +151,15 @@ def convert_freely_moving_without_inertial_sensor(fpath: str):
     for session in tqdm(inds):
         row = session[0]
         data = {
-            x: get_data(file, x, row) for x in ('time', 'body_position_x', 'body_position_y', 'body_speed',
-                                                'arena_size_cm', 'azimuthal_head_direction', 'azimuthal_head_velocity')
+            x: get_data(file, x, row) for x in (
+                'time',
+                'body_position_x',
+                'body_position_y',
+                'body_speed',
+                'arena_size_cm',
+                'azimuthal_head_direction',
+                'azimuthal_head_velocity'
+            )
         }
 
         subject_id = get_str(file, 'animal_id', row)
@@ -339,13 +244,3 @@ def convert_freely_moving_without_inertial_sensor(fpath: str):
         # test read
         with NWBHDF5IO(subject_id + session_id + '.nwb', 'r') as io:
             io.read()
-
-
-cell_info_files = glob('/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/cell_info_session*.mat')
-for cell_info_file in tqdm(cell_info_files):
-    convert_track_file(cell_info_file)
-
-convert_freely_moving_without_inertial_sensor(
-    '/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/Freely_moving_data_without_inertial_sensor.mat')
-convert_freely_moving_with_inertial_sensor(
-    '/Volumes/easystore5T/data/Giocomo/maze_and_free_to_publish/src/Freely_moving_data_with_inertial_sensor.mat')

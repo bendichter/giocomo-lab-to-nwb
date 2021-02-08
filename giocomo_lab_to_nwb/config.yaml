@@ -1,5 +1,5 @@
 ---
-input_file: 'D:\Data\scenda\giocomo\npI5_0417_baseline_1.mat'
+input_file: '/Volumes/black_backup/data/Giocomo/npI5_0417_baseline_1.mat'
 subject_id: 'I5'
 subject_date_of_birth: 'April 4, 2016 12:15AM'
 subject_description: 'naive'
@@ -17,7 +17,7 @@ institution: 'Stanford University School of Medicine'
 lab_name: 'Giocomo Lab'
 ...
 #---
-#input_file: 'D:\Data\scenda\giocomo\npI5_0417_baseline_1_duplicate.mat'
+#input_file: '/Volumes/black_backup/data/Giocomo/npI5_0417_baseline_1.mat'
 #subject_id: 'I5'
 #subject_date_of_birth: 'April 4, 2016 12:10AM'
 #subject_description: 'naive'

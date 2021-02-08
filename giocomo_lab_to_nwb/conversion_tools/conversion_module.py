@@ -11,9 +11,10 @@ from pynwb.behavior import Position, BehavioralEvents
 
 import numpy as np
 import hdf5storage
-import yaml
 import copy
 import os
+import sys
+import yaml
 
 
 def conversion_function(source_paths, f_nwb, metadata, add_spikeglx=False, add_processed=False):
@@ -244,15 +245,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_spikeglx=False, add_p
 
     # add information about the subject of the experiment
     if 'Subject' in metadata:
-        experiment_subject = Subject(
-            subject_id=metadata['Subject']['subject_id'],
-            species=metadata['Subject']['species'],
-            description=metadata['Subject']['description'],
-            genotype=metadata['Subject']['genotype'],
-            date_of_birth=metadata['Subject']['date_of_birth'],
-            weight=metadata['Subject']['weight'],
-            sex=metadata['Subject']['sex']
-        )
+        experiment_subject = Subject(**metadata['Subject'])
         nwbfile.subject = experiment_subject
 
     # If adding SpikeGLX data
@@ -262,7 +255,7 @@ def conversion_function(source_paths, f_nwb, metadata, add_spikeglx=False, add_p
         # Add acquisition data
         extractor.add_acquisition(es_name='ElectricalSeries', metadata=metadata['Ecephys'])
         # Run spike sorting method
-        #extractor.run_spike_sorting()
+        # extractor.run_spike_sorting()
         # Save content to NWB file
         extractor.save(to_path=f_nwb)
     else:
@@ -279,8 +272,6 @@ def conversion_function(source_paths, f_nwb, metadata, add_spikeglx=False, add_p
 
 # If called directly fom terminal
 if __name__ == '__main__':
-    import sys
-    import yaml
 
     if len(sys.argv) < 4:
         print('Error: Please provide source files, nwb file name and metafile.')

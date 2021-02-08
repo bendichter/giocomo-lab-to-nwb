@@ -52,7 +52,7 @@ NWBFile:
 Subject:
   description: naive
   genotype: wild-type
-  sex: Male
+  sex: M
   species: Mus musculus
   subject_id: I5
   weight: '11.6g'

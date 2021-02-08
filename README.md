@@ -42,13 +42,11 @@ metafile = 'metafile.yml'
 with open(metafile) as f:
    metadata = yaml.safe_load(f)
 
-# Other options
-kwargs = {'spikeglx': True, 'processed': False}
-
 conversion_function(source_paths=source_paths,
                     f_nwb=f_nwb,
                     metadata=metadata,
-                    **kwargs)
+                    add_spikeglx=True,
+                    add_processed=False)
 ```
 <br/>
 
