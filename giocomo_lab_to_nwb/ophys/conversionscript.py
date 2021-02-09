@@ -1,8 +1,6 @@
 from .giocomoconverter import GiocomoImagingInterface
 from pathlib import Path
 
-source_path = r'C:\Users\Saksham\Documents\NWB\roiextractors\testdatasets\GiocomoData'
-sbx_path = r'C:\Users\Saksham\Documents\NWB\roiextractors\testdatasets\GiocomoData\4139265.5\10_02_2019\TwoTOwer_foraging\TwoTower_foraging_003_006_small.sbx'
 
 def conversion_complete(source_path):
     """
@@ -41,6 +39,6 @@ def convert_file(sbx_filepath: [Path, str], nwb_save_path: [Path,str] = None):
         Optional, save location for nwb file.
     """
     if nwb_save_path is None:
-        nwb_save_path = Path.cwd()/'gio_nwb.nwb'
+        nwb_save_path = Path.cwd()/'sbx_nwb.nwb'
     gio = GiocomoImagingInterface(sbx_filepath)
     gio.run_conversion(metadata=gio.get_metadata(), nwbfile_path=str(nwb_save_path),overwrite=True)
