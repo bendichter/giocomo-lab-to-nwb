@@ -1,7 +1,7 @@
 """Authors: Szonja Weigl, Luiz Tauffer and Ben Dichter."""
 from pathlib import Path
 
-from nwb_conversion_tools import NWBConverter, SpikeGLXRecordingInterface
+from nwb_conversion_tools import NWBConverter, SpikeGLXRecordingInterface, SpikeGLXLFPInterface
 from .virtualhallwaybehaviordatainterface import VirtualHallwayDataInterface
 
 
@@ -10,6 +10,7 @@ class VirtualHallwayNWBConverter(NWBConverter):
 
     data_interface_classes = dict(
         SpikeGLXRecording=SpikeGLXRecordingInterface,
+        SpikeGLXLFP=SpikeGLXLFPInterface,
         VirtualHallwayData=VirtualHallwayDataInterface
     )
 
