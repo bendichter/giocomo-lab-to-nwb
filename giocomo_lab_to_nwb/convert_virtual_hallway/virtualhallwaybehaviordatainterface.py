@@ -70,14 +70,14 @@ class VirtualHallwayDataInterface(BaseDataInterface):
             sampling_rate = 1 / (times[1] - times[0])
             position_ts = TimeSeries(name='VirtualPosition',
                                      data=H5DataIO(virtual_position, compression="gzip"),
-                                     unit='centimeter',
+                                     unit='meter',
                                      conversion=0.01,
                                      resolution=np.nan,
                                      rate=sampling_rate,
                                      starting_time=times[0],
                                      description='Subject position in the virtual hallway.',
-                                     comments='Values should be between 0 and 400cm. '
-                                              'Values greater than 400cm mean that the mouse'
+                                     comments='Values should be between 0 and 4 meters. '
+                                              'Values greater than 4 meters mean that the mouse'
                                               ' briefly exited the maze.')
 
             # Add mouse physical position
@@ -89,7 +89,7 @@ class VirtualHallwayDataInterface(BaseDataInterface):
 
             physical_position_ts = TimeSeries(name='PhysicalPosition',
                                               data=H5DataIO(physical_position, compression="gzip"),
-                                              unit='centimeter',
+                                              unit='meter',
                                               conversion=0.01,
                                               resolution=np.nan,
                                               rate=sampling_rate,
@@ -101,14 +101,15 @@ class VirtualHallwayDataInterface(BaseDataInterface):
 
             # Add lick events
             events_ts = TimeSeries(name='LickEvents',
-                                        data=H5DataIO(virtual_hallway_data['lickx'],
-                                                      compression="gzip"),
-                                        unit='centimeter',
-                                        resolution=np.nan,
-                                        timestamps=H5DataIO(virtual_hallway_data['lickt'],
-                                                            compression="gzip"),
-                                        description='Subject position in virtual hallway '
-                                                    'during the lick.')
+                                   data=H5DataIO(virtual_hallway_data['lickx'],
+                                                 compression="gzip"),
+                                   unit='meter',
+                                   conversion=0.01,
+                                   resolution=np.nan,
+                                   timestamps=H5DataIO(virtual_hallway_data['lickt'],
+                                                       compression="gzip"),
+                                   description='Subject position in virtual hallway '
+                                               'during the lick.')
 
             lick_events = BehavioralEvents(name='BehavioralEvents',
                                            time_series=events_ts)
