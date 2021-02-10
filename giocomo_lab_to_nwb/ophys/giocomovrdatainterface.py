@@ -1,14 +1,18 @@
-from nwb_conversion_tools.basedatainterface import BaseDataInterface
-from pathlib import Path
-from nwb_conversion_tools import NWBConverter
-from nwb_conversion_tools.json_schema_utils import get_base_schema, dict_deep_update
-from nwb_conversion_tools.utils import get_schema_from_hdmf_class
+import json
+import pickle
 import uuid
 from datetime import datetime
-import pickle
+from pathlib import Path
+
+from nwb_conversion_tools import NWBConverter
+from nwb_conversion_tools.basedatainterface import BaseDataInterface
+from nwb_conversion_tools.json_schema_utils import get_base_schema, dict_deep_update
+from nwb_conversion_tools.utils import get_schema_from_hdmf_class
 from pynwb import NWBFile, TimeSeries
-from pynwb.file import Subject
 from pynwb.behavior import BehavioralTimeSeries
+from pynwb.file import Subject
+from pytz import timezone
+
 
 class GiocomoVRInterface(BaseDataInterface):
     """Data interface for VR Pickled data, Giocomo Lab"""
@@ -19,20 +23,27 @@ class GiocomoVRInterface(BaseDataInterface):
         assert self.file_path.suffix == '.pkl', 'file_path should be a .pkl'
         assert self.file_path.exists(), 'file_path does not exist'
         with open(self.file_path, 'rb') as pk:
-            self.data_frame=pickle.load(pk)['VR_Data']
-        self.beh_args = [dict(name='pos',description='(virtual cm) position on virtual reality track',unit='cm'),
-                        dict(name='dz',description='(virtual cm) raw rotary encoder information',unit='cm'),
-                        dict(name='lick',description='number of licks in 2P frame',unit='n.a.'),
-                        dict(name='tstart',description='information about collisions with objects in virtual track, 0-collision',unit='n.a.'),
-                        dict(name='teleport',description='information about collisions with objects in virtual track, 0-collision',unit='n.a.'),
-                        dict(name='rzone',description='information about collisions with objects in virtual track, 0-collision',unit='n.a.'),
-                        dict(name='speed',description='mouse\'s speed on ball',unit='cm/s'),
-                        dict(name='lick rate',description='smooth version of no. licks',unit='count/s')]
-        self.stimulus_args = [dict(name='morph',description='information about stimulus in arbitrary units',unit='n.a.'),
-                             dict(name='towerJitter',description='information about stimulus in arbitrary units',unit='n.a.'),
-                             dict(name='wallJitter',description='information about stimulus in arbitrary units',unit='n.a.'),
-                             dict(name='bckgndJitter',description='information about stimulus in arbitrary units',unit='n.a.'),
-                             dict(name='reward',description='number of rewards dispensed ',unit='n.a.')]
+            self.data_frame = pickle.load(pk)['VR_Data']
+        self.beh_args = [dict(name='pos', description='(virtual cm) position on virtual reality track', unit='cm'),
+                         dict(name='dz', description='(virtual cm) raw rotary encoder information', unit='cm'),
+                         dict(name='lick', description='number of licks in 2P frame', unit='n.a.'),
+                         dict(name='tstart',
+                              description='information about collisions with objects in virtual track, 0-collision',
+                              unit='n.a.'),
+                         dict(name='teleport',
+                              description='information about collisions with objects in virtual track, 0-collision',
+                              unit='n.a.'),
+                         dict(name='rzone',
+                              description='information about collisions with objects in virtual track, 0-collision',
+                              unit='n.a.'),
+                         dict(name='speed', description='mouse\'s speed on ball', unit='cm/s'),
+                         dict(name='lick rate', description='smooth version of no. licks', unit='count/s')]
+        self.stimulus_args = [
+            dict(name='morph', description='information about stimulus in arbitrary units', unit='n.a.'),
+            dict(name='towerJitter', description='information about stimulus in arbitrary units', unit='n.a.'),
+            dict(name='wallJitter', description='information about stimulus in arbitrary units', unit='n.a.'),
+            dict(name='bckgndJitter', description='information about stimulus in arbitrary units', unit='n.a.'),
+            dict(name='reward', description='number of rewards dispensed ', unit='n.a.')]
 
     @classmethod
     def get_source_schema(cls):
