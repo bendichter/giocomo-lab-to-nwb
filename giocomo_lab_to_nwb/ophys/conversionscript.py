@@ -1,6 +1,6 @@
 from .giocomoconverter import GiocomoImagingInterface
 from pathlib import Path
-
+from tqdm import tqdm
 
 def conversion_complete(source_path):
     """
@@ -10,22 +10,23 @@ def conversion_complete(source_path):
     source_path: Path, str
         location of the source_folder containing datafiles
     """
+    source_path = Path(source_path)
+
     for subject_id_path in source_path.iterdir():
         if subject_id_path.name[:-2].isdigit():
-            for date_path in subject_id_path.iterdir():
-                for task_path in date_path.iterdir():
-                    for file_path in task_path.iterdir():
-                        if file_path.suffix == '.sbx' and 'small' in str(file_path):
-                            print(file_path)
-                            try:
-                                gio = GiocomoImagingInterface(str(file_path))
-                                nwb_file_name = file_path.with_suffix('.nwb')
-                                gio.run_conversion(metadata=gio.get_metadata(),
-                                                   nwbfile_path=str(nwb_file_name),
-                                                   overwrite=True)
-                                print(f'converted nwb file for {str(file_path)}')
-                            except Exception as e:
-                                print(f'could not convert: {e}')
+            print(f'converting for subject is:{subject_id_path.name}')
+            file_path_list=tqdm([i for i in subject_id_path.glob('*/*/*.sbx')])
+            for file_path in file_path_list:
+                file_path_list.set_postfix(current=f'writing: {file_path.name}')
+                try:
+                    gio = GiocomoImagingInterface(str(file_path))
+                    nwb_file_name = file_path.with_suffix('.nwb')
+                    gio.run_conversion(metadata=gio.get_metadata(),
+                                       nwbfile_path=str(nwb_file_name),
+                                       overwrite=True)
+                    print(f'converted nwb file for {str(file_path)}')
+                except Exception as e:
+                    print(f'could not convert: {e}')
 
 
 def convert_file(sbx_filepath: [Path, str], nwb_save_path: [Path,str] = None):
