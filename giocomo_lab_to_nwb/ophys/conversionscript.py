@@ -27,7 +27,6 @@ def conversion_complete(source_path):
                     gio.run_conversion(metadata=gio.get_metadata(),
                                        nwbfile_path=str(nwb_file_name),
                                        overwrite=True)
-                    print(f'converted nwb file for {str(file_path)}')
                 except Exception as e:
                     print(f'could not convert: {e}')
 
