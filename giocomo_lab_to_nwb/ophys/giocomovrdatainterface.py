@@ -77,7 +77,7 @@ class GiocomoVRInterface(BaseDataInterface):
             NWBFile=dict(
                 session_description=session_desc,
                 identifier=str(uuid.uuid4()),
-                session_start_time=datetime.strptime(date, "%m_%d_%Y").astimezone(time_zone),
+                session_start_time=datetime.strptime(date, "%d_%m_%Y").astimezone(time_zone),
                 experiment_description=exp_desc,
                 virus=f'virus injection date: {subject_details["virus injection date"]}, '
                       f'virus: {subject_details["VIRUS"]}',
