@@ -31,17 +31,21 @@ def conversion_complete(source_path):
                     print(f'could not convert: {e}')
 
 
-def convert_file(sbx_filepath: [Path, str], nwb_save_path: [Path, str] = None):
+def convert_file(filepath: [Path, str, dict], nwb_save_path: [Path, str] = None):
     """
     Convert a single set of sbx, suite2p and VR data pickled files
     Parameters
     ----------
-    sbx_filepath: [Path,str]
-        path to the sbx file.
+    filepath: [Path,str, dict]
+        path to the sbx file. Or dict:
+        {'SbxImagingInterface': path-to-sbxfile,
+          'Suite2pSegmentationInterface': path-to-suite2p,
+          'GiocomoVRInterface': path-to-vrpkl file
+        }
     nwb_save_path: [Path,str]
         Optional, save location for nwb file.
     """
     if nwb_save_path is None:
         nwb_save_path = Path.cwd()/'sbx_nwb.nwb'
-    gio = GiocomoImagingInterface(sbx_filepath)
+    gio = GiocomoImagingInterface(filepath)
     gio.run_conversion(metadata=gio.get_metadata(), nwbfile_path=str(nwb_save_path), overwrite=True)
