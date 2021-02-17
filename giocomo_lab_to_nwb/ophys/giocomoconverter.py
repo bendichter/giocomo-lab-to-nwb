@@ -2,7 +2,7 @@ from nwb_conversion_tools import NWBConverter, SbxImagingInterface, Suite2pSegme
 from .giocomovrdatainterface import GiocomoVRInterface
 from pathlib import Path
 import warnings
-
+import jsonschema
 
 class GiocomoImagingInterface(NWBConverter):
 
@@ -22,10 +22,7 @@ class GiocomoImagingInterface(NWBConverter):
             path to the .mat/sbx file
         """
         if isinstance(source_data,dict):
-            req_keys = ['SbxImagingInterface', 'Suite2pSegmentationInterface', 'GiocomoVRInterface']
-            assert all([True for i in source_data.keys() if i in req_keys]), f'provide dict with keys:{req_keys}'
-            assert all([True for i in source_data.values() if isinstance(i,dict) and 'file_path' in i]),\
-                'provide each value as dict :"{file_path: path-to-file}"'
+            jsonschema.validate(source_data, self.get_source_schema())
             source_data_dict = source_data
         else:
             source_data = Path(source_data)
