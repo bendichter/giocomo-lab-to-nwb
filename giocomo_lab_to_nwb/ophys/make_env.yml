@@ -1,0 +1,24 @@
+name: giocomo_lab_nwb
+channels:
+- defaults
+- anaconda
+- conda-forge
+dependencies:
+- python=3.7
+- ipython
+- pip
+- numpy
+- scipy
+- jupyter
+- matplotlib
+- h5py
+- pynwb
+- joblib
+- tqdm
+- pathlib
+- pip:
+  - git+https://github.com/NeurodataWithoutBorders/nwbn-conversion-tools
+  - git+https://github.com/ben-dichter-consulting/ndx-labmetadata-giocomo.git
+  - git+https://github.com/catalystneuro/roiextractors
+  - git+https://github.com/hdmf-dev/hdmf@dev
+  - -e .
