@@ -1,11 +1,13 @@
-from nwb_conversion_tools import NWBConverter, SbxImagingInterface, Suite2pSegmentationInterface
-from .giocomovrdatainterface import GiocomoVRInterface
-from pathlib import Path
 import warnings
+from pathlib import Path
+
 import jsonschema
+from nwb_conversion_tools import NWBConverter, SbxImagingInterface, Suite2pSegmentationInterface
+
+from .giocomovrdatainterface import GiocomoVRInterface
+
 
 class GiocomoImagingInterface(NWBConverter):
-
     data_interface_classes = dict(
         SbxImagingInterface=SbxImagingInterface,
         Suite2pSegmentationInterface=Suite2pSegmentationInterface,
@@ -21,12 +23,12 @@ class GiocomoImagingInterface(NWBConverter):
         source_data : str
             path to the .mat/sbx file
         """
-        if isinstance(source_data,dict):
+        if isinstance(source_data, dict):
             jsonschema.validate(source_data, self.get_source_schema())
             source_data_dict = source_data
         else:
             source_data = Path(source_data)
-            assert source_data.suffix in ['.mat','.sbx'], 'source_data should be path to .mat/.sbx file'
+            assert source_data.suffix in ['.mat', '.sbx'], 'source_data should be path to .mat/.sbx file'
             source_data_dict = dict(
                 SbxImagingInterface=dict(file_path=str(source_data))
             )
@@ -38,7 +40,8 @@ class GiocomoImagingInterface(NWBConverter):
             pkl_file = source_data.with_suffix('.pkl')
             if not pkl_file.exists():
                 pkl_file = \
-                    source_data.parents[3]/'VR_pd_pickles'/source_data.relative_to(source_data.parents[3]).with_suffix('.pkl')
+                    source_data.parents[3]/'VR_pd_pickles'/source_data.relative_to(source_data.parents[3]).with_suffix(
+                        '.pkl')
                 if not pkl_file.exists():
                     warnings.warn('could not find .pkl file')
                 else:
