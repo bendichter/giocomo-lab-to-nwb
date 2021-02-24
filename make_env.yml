@@ -14,7 +14,5 @@ dependencies:
 - h5py
 - pynwb
 - hdmf
-- pip:
-  - git+https://github.com/NeurodataWithoutBorders/nwbn-conversion-tools
-  - git+https://github.com/ben-dichter-consulting/ndx-labmetadata-giocomo.git
-  - -e .
+- nwb-conversion-tools
+- ndx-labmetadata-giocomo
