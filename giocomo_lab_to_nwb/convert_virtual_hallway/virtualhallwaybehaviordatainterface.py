@@ -6,11 +6,34 @@ from nwb_conversion_tools.basedatainterface import BaseDataInterface
 from nwb_conversion_tools.utils import get_base_schema, get_schema_from_hdmf_class
 from pynwb.behavior import SpatialSeries, BehavioralEvents
 from pynwb import NWBFile, TimeSeries
+from pynwb.misc import Units
 from scipy.io import loadmat
 import numpy as np
 
 from ndx_labmetadata_giocomo import LabMetaData_ext
-from ..utils import check_module
+
+
+def check_module(nwbfile, name, description=None):
+    """
+    Check if processing module exists. If not, create it. Then return module.
+
+    Parameters
+    ----------
+    nwbfile: pynwb.NWBFile
+    name: str
+    description: str | None (optional)
+
+    Returns
+    -------
+    pynwb.module
+
+    """
+    if name in nwbfile.modules:
+        return nwbfile.modules[name]
+    else:
+        if description is None:
+            description = name
+        return nwbfile.create_processing_module(name, description)
 
 
 class VirtualHallwayDataInterface(BaseDataInterface):
@@ -119,3 +142,57 @@ class VirtualHallwayDataInterface(BaseDataInterface):
             behavioral_processing_module.add_data_interface(position_ts)
             behavioral_processing_module.add_data_interface(physical_position_ts)
             behavioral_processing_module.add_data_interface(lick_events)
+
+            # Add information about each unit, termed 'cluster' in giocomo data
+            # create new columns in unit table
+            nwbfile.add_unit_column(
+                name='quality',
+                description='labels given to clusters during manual sorting in phy '
+                            '(1=MUA, 2=Good, 3=Unsorted)'
+            )
+
+            # cluster information
+            cluster_ids = virtual_hallway_data['sp'].cids
+            cluster_quality = virtual_hallway_data['sp'].cgs
+            # spikes in time
+            spike_times = virtual_hallway_data['sp'].st
+            # the cluster_id that spiked at that time
+            spike_cluster = virtual_hallway_data['sp'].clu
+            for i, cluster_id in enumerate(cluster_ids):
+                unit_spike_times = spike_times[spike_cluster == cluster_id]
+                waveforms = virtual_hallway_data['sp'].temps[cluster_id]
+                nwbfile.add_unit(
+                    id=int(cluster_id),
+                    spike_times=unit_spike_times,
+                    quality=cluster_quality[i],
+                    waveform_mean=waveforms,
+                    electrode_group=nwbfile.get_electrode_group()
+                )
+
+            # create TemplateUnits units table to hold the results of the automatic spike sorting
+            template_units = Units(
+                name='TemplateUnits',
+                description='units assigned during automatic spike sorting')
+            template_units.add_column(
+                name='tempScalingAmps',
+                description='scaling amplitude applied to the template when extracting spike',
+                index=True)
+            # information on extracted spike templates
+            spike_templates = virtual_hallway_data['sp'].spikeTemplates
+            spike_template_ids = np.unique(spike_templates)
+            # template scaling amplitudes
+            temp_scaling_amps = virtual_hallway_data['sp'].tempScalingAmps
+            for i, spike_template_id in enumerate(spike_template_ids):
+                template_spike_times = spike_times[spike_templates == spike_template_id]
+                temp_scaling_amps_per_template = temp_scaling_amps[
+                    spike_templates == spike_template_id]
+                template_units.add_unit(
+                    id=int(spike_template_id),
+                    spike_times=template_spike_times,
+                    electrode_group=nwbfile.get_electrode_group(),
+                    tempScalingAmps=temp_scaling_amps_per_template
+                )
+
+            spike_template_module = check_module(nwbfile, 'ecephys',
+                                                 'units assigned during automatic spike sorting')
+            spike_template_module.add(template_units)
