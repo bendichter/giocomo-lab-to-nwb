@@ -1,0 +1,12 @@
+pynwb
+numpy
+scipy
+hdf5storage
+pytz
+uuid
+tkcalendar
+PyYAML
+pyintan
+nwb-web-gui
+nwb-conversion-tools
+ndx-labmetadata-giocomo
