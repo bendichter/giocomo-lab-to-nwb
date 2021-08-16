@@ -198,7 +198,7 @@ def convert_freely_moving_without_inertial_sensor(fpath: str):
             lab='Giocomo',
             institution='Stanford University',
             experiment_description='arena size (cm): {}'.format(data['arena_size_cm']),
-            subject=Subject(subject_id=subject_id)
+            subject=Subject(subject_id=subject_id, species="Mus musculus")
         )
 
         behavior = nwbfile.create_processing_module(
