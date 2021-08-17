@@ -26,9 +26,9 @@ Behavior:
   BehavioralEvents:
     name: BehavioralEvents
     time_series:
-      name: LickEvents
-      unit: centimeter
-      description: Subject position in virtual hallway during the lick.
+      - name: LickEvents
+        unit: centimeter
+        description: Subject position in virtual hallway during the lick.
 NWBFile:
   experiment_description: Virtual Hallway Task
   experimenter: Kei Masuda
@@ -52,7 +52,7 @@ NWBFile:
 Subject:
   description: naive
   genotype: wild-type
-  sex: Male
+  sex: M
   species: Mus musculus
   subject_id: I5
   weight: '11.6g'

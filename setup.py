@@ -6,13 +6,12 @@ with open('README.md', 'r') as f:
 
 setup(
     name='giocomo_lab_to_nwb',
-    version='0.1dev',
-    description='tool to convert giocomo matlab data into NWB:N format',
+    version='0.1.0',
+    description='convert Giocomo Neuropixel data into NWB:N format',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Kristin Quick',
     author_email='kristin@scenda.io',
-    #packages=['giocomo_lab_to_nwb'],
     packages=find_packages(),
     include_package_data=True,
     install_requires=['pynwb',
@@ -23,5 +22,7 @@ setup(
                       'uuid',
                       'tkcalendar',
                       'PyYAML',
-                      'nwbn_conversion_tools']
+                      'nwbn_conversion_tools==0.1.1',
+                      'ndx_labmetadata_giocomo',
+                      ]
 )
