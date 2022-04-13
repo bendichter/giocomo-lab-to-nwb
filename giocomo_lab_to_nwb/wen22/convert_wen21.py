@@ -22,7 +22,6 @@ for session_path in session_path_list:
     # Verbose
     print(f"{session_id=}")
 
-
     # Raw signal
     signal_kind = "ap"
     ap_file_name = f"{directory_with_data_path.stem.replace('g0_', 'g0_t0.')}.{signal_kind}.bin"
@@ -41,16 +40,18 @@ for session_path in session_path_list:
 
     # Spikes
     phy_directory_path = directory_with_data_path
-
     source_data.update(
         PhySorting=dict(
             folder_path=str(phy_directory_path), exclude_cluster_groups=["noise", "mua"]
         )
     )
 
+    # Behavior
+    source_data.update(Behavior=dict(session_path=str(session_path)))
+
     converter = Wen21NWBConverter(source_data=source_data)
-    metadata = None
     metadata = converter.get_metadata()
+    metadata['NWBFile'].update(session_description=session_id)
 
     nwb_file_name = f"{session_id}.nwb"
     nwbfile_path = output_path / nwb_file_name
