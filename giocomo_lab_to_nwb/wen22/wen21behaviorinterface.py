@@ -117,7 +117,7 @@ class Wen21EventsInterface(BaseDataInterface):
         rows_as_dicts = df_epochs.T.to_dict().values()
         [nwbfile.add_epoch(**row_dict) for row_dict in rows_as_dicts]
 
-         # Add trial time intervals
+        # Add trial time intervals
         file_path_list = list(session_path.glob("*trial_times.txt"))
         file_path_list = [path for path in file_path_list if track_label in path.name]
         df_data_list = []
@@ -141,8 +141,6 @@ class Wen21EventsInterface(BaseDataInterface):
         
         first_trial_time = nwbfile.epochs.start_time[:][1]
         df_data_concatenated["start_time"] = df_data_concatenated.stop_time.shift(1).fillna(first_trial_time)
-        rows_as_dicts = df_data_concatenated[["start_time", "stop_time"]].T.to_dict().values()
+        rows_as_dicts = df_data_concatenated[["start_time", "stop_time", "epoch"]].T.to_dict().values()
+        nwbfile.add_trial_column(name="epoch", description="epoch")
         [nwbfile.add_trial(**row_dict) for row_dict in rows_as_dicts]
-        epochs_data = df_data_concatenated.epoch.values.astype("str")
-        nwbfile.add_trial_column(name="epoch", description="epoch", data=epochs_data)
-        
