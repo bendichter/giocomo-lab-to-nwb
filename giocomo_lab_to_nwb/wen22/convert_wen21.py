@@ -20,6 +20,7 @@ for session_path in session_path_list:
     conversion_options = dict()
 
     # Verbose
+    print("====================================")
     print(f"{session_id=}")
 
     # Raw signal
@@ -27,7 +28,7 @@ for session_path in session_path_list:
     ap_file_name = f"{directory_with_data_path.stem.replace('g0_', 'g0_t0.')}.{signal_kind}.bin"
     ap_file_path = directory_with_data_path / ap_file_name
     source_data.update(
-        SpikeGLXRecording=dict(file_path=str(ap_file_path), stub_test=stub_test)
+        SpikeGLXRecording=dict(file_path=str(ap_file_path))
     )
     conversion_options.update(SpikeGLXRecording=dict(stub_test=stub_test))
 
@@ -35,16 +36,16 @@ for session_path in session_path_list:
     signal_kind = "lf"
     lf_file_name = f"{directory_with_data_path.stem.replace('g0_', 'g0_t0.')}.{signal_kind}.bin"
     lf_file_path = directory_with_data_path / lf_file_name
-    source_data.update(SpikeGLXLFP=dict(file_path=str(lf_file_path), stub_test=stub_test))
+    source_data.update(SpikeGLXLFP=dict(file_path=str(lf_file_path)))
     conversion_options.update(SpikeGLXLFP=dict(stub_test=stub_test))
 
-    # Spikes
-    phy_directory_path = directory_with_data_path
-    source_data.update(
-        PhySorting=dict(
-            folder_path=str(phy_directory_path), exclude_cluster_groups=["noise", "mua"]
-        )
-    )
+    # # Spikes
+    # phy_directory_path = directory_with_data_path
+    # source_data.update(
+    #     PhySorting=dict(
+    #         folder_path=str(phy_directory_path), exclude_cluster_groups=["noise", "mua"]
+    #     )
+    # )
 
     # Behavior
     source_data.update(Behavior=dict(session_path=str(session_path)))
