@@ -2,7 +2,6 @@ from pathlib import Path
 from wen21nwbconverter import Wen21NWBConverter
 from nwb_conversion_tools.utils import dict_deep_update, load_dict_from_file
 
-# data_path = Path("/home/heberto/Wen/")
 data_path = Path("/media/heberto/TOSHIBA EXT/Wen/")
 output_path = Path("/home/heberto/nwb/")
 general_metadata_path = Path("./giocomo_lab_to_nwb/wen22/metadata.yml")
@@ -14,7 +13,7 @@ spikeextractors_backend = False
 session_path_list = [path for path in data_path.iterdir() if path.name!="VR"]
 
 for session_path in session_path_list:
-    # Determine paths to file and initialize variables
+    # Determine relevant file paths and initialize variables
     session_id = session_path.name
     device = "imec0"
     directory_with_data_path = session_path / f"{session_id}_{device}"
@@ -26,7 +25,7 @@ for session_path in session_path_list:
     print("====================================")
     print(f"{session_id=}")
 
-    # Raw signal
+    # Raw signal spikeglx
     signal_kind = "ap"
     ap_file_name = f"{directory_with_data_path.stem.replace('g0_', 'g0_t0.')}.{signal_kind}.bin"
     ap_file_path = directory_with_data_path / ap_file_name
@@ -35,7 +34,7 @@ for session_path in session_path_list:
     )
     conversion_options.update(SpikeGLXRecording=dict(stub_test=stub_test))
 
-    # LFP
+    # LFP signa spikeglx
     signal_kind = "lf"
     lf_file_name = f"{directory_with_data_path.stem.replace('g0_', 'g0_t0.')}.{signal_kind}.bin"
     lf_file_path = directory_with_data_path / lf_file_name
@@ -53,12 +52,14 @@ for session_path in session_path_list:
     # Behavior
     source_data.update(Behavior=dict(session_path=str(session_path)))
 
+    # Metadata
     converter = Wen21NWBConverter(source_data=source_data)
     metadata = converter.get_metadata()
     metadata['NWBFile'].update(session_description=session_id)
     metadata_from_yaml = load_dict_from_file(general_metadata_path)
     metadata = dict_deep_update(metadata, metadata_from_yaml)
     
+    # Run conversion
     nwb_file_name = f"{session_id}.nwb"
     nwbfile_path = output_path / nwb_file_name
     converter.run_conversion(
