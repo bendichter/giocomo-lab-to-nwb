@@ -44,7 +44,8 @@ class Wen21EventsInterface(BaseDataInterface):
             name="lick events",
             description="lick events timestamps and their corresponding position",
             data=lick_positions,
-            unit="cm",
+            unit="m",
+            conversion=0.01,
             timestamps=lick_timestamps,
         )
 
@@ -80,20 +81,25 @@ class Wen21EventsInterface(BaseDataInterface):
         df_data_list = []
         for trial_file_path in file_path_list:
             trial_file_name = trial_file_path.name
-            file_epoch_name = trial_file_name.split("_trial")[0].partition("train1")[-1]
+            file_epoch_name = trial_file_name.split("_trial")[0].partition("train1")
+            if len(file_epoch_name) > 0:
+                file_epoch_name = file_epoch_name[-1]
+
             df_data = pd.read_csv(
                 trial_file_path,
                 sep="\t",
                 names=["stop_time", "x1", "x2", "x3"],
             )
+            df_data["epoch"] = file_epoch_name[1:] if file_epoch_name else no_name_epoch_name
             df_data_list.append(df_data)
 
-        df_data_concatenated = pd.concat(df_data_list)
+        df_data_concatenated = pd.concat(df_data_list).reset_index()
         df_data_concatenated.sort_values(by="stop_time", inplace=True)
         df_data_concatenated["start_time"] = df_data_concatenated.stop_time.shift(1).fillna(0)
         rows_as_dicts = df_data_concatenated[["start_time", "stop_time"]].T.to_dict().values()
         [nwbfile.add_trial(**row_dict) for row_dict in rows_as_dicts]
-
+        nwbfile.add_trial_column(name="epoch", description="epoch", data=df_data_concatenated.epoch)
+        
         # Add positions
         file_path_list = list(session_path.glob("*position.txt"))
         file_path_list = [path for path in file_path_list if track_label in path.name]
@@ -114,7 +120,6 @@ class Wen21EventsInterface(BaseDataInterface):
 
         df_data_concatenated = pd.concat(df_data_list)
         df_data_concatenated.sort_values(by="timestamps", inplace=True)
-
         pos_obj = Position(name=f"position during epoch {file_epoch_name[1:]}")
 
         spatial_series_object = SpatialSeries(
@@ -122,8 +127,8 @@ class Wen21EventsInterface(BaseDataInterface):
             description="position within the virtual reality wheel",
             data=H5DataIO(df_data_concatenated.position.values, compression="gzip"),
             reference_frame="unknown",
-            unit="cm",
-            conversion="0.100",
+            unit="m",
+            conversion=0.01,
             timestamps=df_data_concatenated.timestamps.values,
         )
 

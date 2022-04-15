@@ -9,8 +9,9 @@ general_metadata_path = Path("./giocomo_lab_to_nwb/wen22/metadata.yml")
 stub_test = True
 if stub_test:
     output_path = output_path.parent / "nwb_stub"
+spikeextractors_backend = False
 
-session_path_list = list(data_path.iterdir())
+session_path_list = [path for path in data_path.iterdir() if path.name!="VR"]
 
 for session_path in session_path_list:
     # Determine paths to file and initialize variables
@@ -30,7 +31,7 @@ for session_path in session_path_list:
     ap_file_name = f"{directory_with_data_path.stem.replace('g0_', 'g0_t0.')}.{signal_kind}.bin"
     ap_file_path = directory_with_data_path / ap_file_name
     source_data.update(
-        SpikeGLXRecording=dict(file_path=str(ap_file_path))
+        SpikeGLXRecording=dict(file_path=str(ap_file_path), spikeextractors_backend=spikeextractors_backend)
     )
     conversion_options.update(SpikeGLXRecording=dict(stub_test=stub_test))
 
@@ -38,7 +39,7 @@ for session_path in session_path_list:
     signal_kind = "lf"
     lf_file_name = f"{directory_with_data_path.stem.replace('g0_', 'g0_t0.')}.{signal_kind}.bin"
     lf_file_path = directory_with_data_path / lf_file_name
-    source_data.update(SpikeGLXLFP=dict(file_path=str(lf_file_path)))
+    source_data.update(SpikeGLXLFP=dict(file_path=str(lf_file_path), spikeextractors_backend=spikeextractors_backend))
     conversion_options.update(SpikeGLXLFP=dict(stub_test=stub_test))
 
     # Spikes
