@@ -1,9 +1,11 @@
 from pathlib import Path
 from wen21nwbconverter import Wen21NWBConverter
+from nwb_conversion_tools.utils import dict_deep_update, load_dict_from_file
 
 # data_path = Path("/home/heberto/Wen/")
 data_path = Path("/media/heberto/TOSHIBA EXT/Wen/")
 output_path = Path("/home/heberto/nwb/")
+general_metadata_path = Path("./giocomo_lab_to_nwb/wen22/metadata.yml")
 stub_test = True
 if stub_test:
     output_path = output_path.parent / "nwb_stub"
@@ -39,13 +41,13 @@ for session_path in session_path_list:
     source_data.update(SpikeGLXLFP=dict(file_path=str(lf_file_path)))
     conversion_options.update(SpikeGLXLFP=dict(stub_test=stub_test))
 
-    # # Spikes
-    # phy_directory_path = directory_with_data_path
-    # source_data.update(
-    #     PhySorting=dict(
-    #         folder_path=str(phy_directory_path), exclude_cluster_groups=["noise", "mua"]
-    #     )
-    # )
+    # Spikes
+    phy_directory_path = directory_with_data_path
+    source_data.update(
+        PhySorting=dict(
+            folder_path=str(phy_directory_path), exclude_cluster_groups=["noise", "mua"]
+        )
+    )
 
     # Behavior
     source_data.update(Behavior=dict(session_path=str(session_path)))
@@ -53,7 +55,9 @@ for session_path in session_path_list:
     converter = Wen21NWBConverter(source_data=source_data)
     metadata = converter.get_metadata()
     metadata['NWBFile'].update(session_description=session_id)
-
+    metadata_from_yaml = load_dict_from_file(general_metadata_path)
+    metadata = dict_deep_update(metadata, metadata_from_yaml)
+    
     nwb_file_name = f"{session_id}.nwb"
     nwbfile_path = output_path / nwb_file_name
     converter.run_conversion(
