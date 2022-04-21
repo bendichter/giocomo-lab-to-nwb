@@ -1,4 +1,7 @@
 from pathlib import Path
+import dateutil
+from datetime import datetime
+
 from wen21nwbconverter import Wen21NWBConverter
 from nwb_conversion_tools.utils import dict_deep_update, load_dict_from_file
 
@@ -55,7 +58,10 @@ for session_path in session_path_list:
     # Metadata
     converter = Wen21NWBConverter(source_data=source_data)
     metadata = converter.get_metadata()
-    metadata['NWBFile'].update(session_description=session_id)
+    session_start_time = datetime.fromisoformat(metadata["NWBFile"]['session_start_time'])
+    tzinfo=dateutil.tz.gettz("America/Los_Angeles")
+    session_start_time = session_start_time.replace(tzinfo=tzinfo).isoformat()
+    metadata['NWBFile'].update(session_description=session_id, session_start_time=session_start_time)
     metadata_from_yaml = load_dict_from_file(general_metadata_path)
     metadata = dict_deep_update(metadata, metadata_from_yaml)
     

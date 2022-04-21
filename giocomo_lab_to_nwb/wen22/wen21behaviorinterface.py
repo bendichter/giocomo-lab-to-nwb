@@ -113,8 +113,10 @@ class Wen21EventsInterface(BaseDataInterface):
         # Add epochs from the position file (the one with the highest temporal resolution available)
         df_epochs = df_data_concatenated.groupby("epoch").agg({"timestamps": ["min", "max"]})["timestamps"]
         df_epochs = df_epochs.sort_values(by="min").reset_index()
-        df_epochs = df_epochs.rename(columns={"min":"start_time", 'max':"stop_time", "epoch":"tags"})
+        df_epochs = df_epochs.rename(columns={"min":"start_time", 'max':"stop_time", "epoch":"epoch_name"})
         rows_as_dicts = df_epochs.T.to_dict().values()
+        
+        nwbfile.add_epoch_column(name="epoch_name", description="the name of the epoch")
         [nwbfile.add_epoch(**row_dict) for row_dict in rows_as_dicts]
 
         # Add trial time intervals
