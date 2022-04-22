@@ -13,7 +13,7 @@ if stub_test:
     output_path = output_path.parent / "nwb_stub"
 spikeextractors_backend = False
 
-session_path_list = [path for path in data_path.iterdir() if path.name!="VR"]
+session_path_list = [path for path in data_path.iterdir() if path.name != "VR"]
 
 for session_path in session_path_list:
     # Determine relevant file paths and initialize variables
@@ -44,14 +44,10 @@ for session_path in session_path_list:
     source_data.update(SpikeGLXLFP=dict(file_path=str(lf_file_path), spikeextractors_backend=spikeextractors_backend))
     conversion_options.update(SpikeGLXLFP=dict(stub_test=stub_test))
 
-    # # Spikes
-    # phy_directory_path = directory_with_data_path
-    # source_data.update(
-    #     PhySorting=dict(
-    #         folder_path=str(phy_directory_path), exclude_cluster_groups=["noise", "mua"]
-    #     )
-    # )
-    # conversion_options.update(PhySorting=dict(stub_test=stub_test))
+    # Spikes
+    phy_directory_path = directory_with_data_path
+    source_data.update(PhySorting=dict(folder_path=str(phy_directory_path), exclude_cluster_groups=["noise", "mua"]))
+    conversion_options.update(PhySorting=dict(stub_test=stub_test))
 
     # Behavior
     source_data.update(Behavior=dict(session_path=str(session_path)))
@@ -59,19 +55,20 @@ for session_path in session_path_list:
     # Metadata
     converter = Wen21NWBConverter(source_data=source_data)
     metadata = converter.get_metadata()
-    
-    session_start_time = datetime.fromisoformat(metadata["NWBFile"]['session_start_time'])
-    tzinfo=dateutil.tz.gettz("America/Los_Angeles")
+
+    session_start_time = datetime.fromisoformat(metadata["NWBFile"]["session_start_time"])
+    tzinfo = dateutil.tz.gettz("America/Los_Angeles")
     session_start_time = session_start_time.replace(tzinfo=tzinfo).isoformat()
-    metadata['NWBFile'].update(session_description=session_id, session_start_time=session_start_time)
+    metadata["NWBFile"].update(session_description=session_id, session_start_time=session_start_time)
     metadata_from_yaml = load_dict_from_file(general_metadata_path)
     metadata = dict_deep_update(metadata, metadata_from_yaml)
-    
+
     ## Subject metadata
-    subject = session_id.split('_')[0]
+    subject = session_id.split("_")[0]
     subject_metadata_from_yaml = load_dict_from_file(general_metadata_path.with_stem("subject_metadata"))
     subject_metadata = subject_metadata_from_yaml[subject]
     metadata["Subject"] = dict_deep_update(metadata["Subject"], subject_metadata)
+    
     # Run conversion
     nwb_file_name = f"{session_id}.nwb"
     nwbfile_path = output_path / nwb_file_name
