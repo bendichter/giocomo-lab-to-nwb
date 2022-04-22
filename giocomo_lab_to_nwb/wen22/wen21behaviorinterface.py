@@ -95,7 +95,7 @@ class Wen21EventsInterface(BaseDataInterface):
 
         df_data_concatenated = pd.concat(df_data_list)
         df_data_concatenated.sort_values(by="timestamps", inplace=True)
-        pos_obj = Position(name=f"position during epoch {file_epoch_name[1:]}")
+        pos_obj = Position(name=f"position within the virtual reality wheel")
 
         spatial_series_object = SpatialSeries(
             name="position",
