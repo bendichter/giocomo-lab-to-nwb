@@ -1,6 +1,6 @@
 N2:
   subject_id: N2
-  age: 90D
+  age: P90D
   strain: C57Bl/6
   genotype: wildtype 
   date_of_birth: 2019-10-22

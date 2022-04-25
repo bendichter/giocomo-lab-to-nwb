@@ -7,5 +7,12 @@ NWBFile:
   lab: Giocomo Lab
   experimenter:
     - John Wen
+  experiment_description:
+    TBD
+  keywords:
+    - Virtual reality
+    - VR
+    - Wheel
+    - Mice
 Subject:
   species: Mus musculus
