@@ -8,7 +8,6 @@ from nwb_conversion_tools.utils import dict_deep_update, load_dict_from_file
 # To be changed in the running system
 data_path = Path("/media/heberto/TOSHIBA EXT/Wen/")
 output_path = Path("/media/heberto/TOSHIBA EXT/nwb/")
-# output_path = Path("/home/heberto/nwb/")
 
 general_metadata_path = Path("./giocomo_lab_to_nwb/wen22/metadata.yml")
 stub_test = True
@@ -17,7 +16,7 @@ if stub_test:
 spikeextractors_backend = False
 
 session_path_list = [path for path in data_path.iterdir() if path.name != "VR"]
-
+# session_path_list = [session_path_list[-1]]
 for session_path in session_path_list:
     # Determine relevant file paths and initialize variables
     session_id = session_path.name

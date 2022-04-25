@@ -19,14 +19,15 @@ class Wen21EventsInterface(BaseDataInterface):
         super().__init__(session_path=session_path)
 
     def calculate_behavioral_offset_with_nidq_channel(self, df_epochs: pd.DataFrame):
+        """Calculates the offset in time between the timestamps in the behavioral files and the niqst files."""
 
         session_path = Path(self.source_data["session_path"])
         # Calculate shift
         stream_id = "nidq"
         nidq_file_name = f"{session_path.stem.replace('g0', 'g0_t0')}.{stream_id}.bin"
         nidq_file_path = session_path / nidq_file_name
-        offset_for_behavioral_time_stamps = 0
 
+        offset_for_behavioral_time_stamps = 0
         if nidq_file_path.is_file():
             nidq_extractor = SpikeGLXRecordingExtractor(session_path, stream_id=stream_id)
             channel = "nidq#XA2"  # The channel that indicates change in epoch
@@ -90,16 +91,18 @@ class Wen21EventsInterface(BaseDataInterface):
         df_epochs["start_time"] -= offset_for_behavioral_time_stamps
         df_epochs["stop_time"] -= offset_for_behavioral_time_stamps
 
-        # Add positions to the nwb=file
+        # Add positions to the nwb_file
+        position_data = df_position_data.position.values.astype("float", copy=False)
+        position_timestamps = df_position_data.timestamps.values.astype("float", copy=False)
         pos_obj = Position(name=f"position within the virtual reality wheel")
         spatial_series_object = SpatialSeries(
             name="position",
             description="position within the virtual reality wheel",
-            data=H5DataIO(df_position_data.position.values, compression="gzip"),
+            data=H5DataIO(position_data, compression="gzip"),
             reference_frame="unknown",
             unit="m",
             conversion=0.01,
-            timestamps=df_position_data.timestamps.values,
+            timestamps=position_timestamps,
         )
 
         # Add epochs to the nwb-file
@@ -144,12 +147,6 @@ class Wen21EventsInterface(BaseDataInterface):
         file_path_list = [path for path in file_path_list if track_label in path.name]
         df_data_list = []
         for licks_file_path in file_path_list:
-
-            lick_file_name = licks_file_path.name
-            file_epoch_name = lick_file_name.split("_licks")[0].partition("train1")[-1]
-            if len(file_epoch_name) > 0:
-                file_epoch_name = file_epoch_name[1:]
-
             df_data = pd.read_csv(licks_file_path, sep="\t", names=["position", "time"])
             df_data_list.append(df_data)
 
@@ -157,8 +154,8 @@ class Wen21EventsInterface(BaseDataInterface):
         df_data_concatenated.sort_values(by="time", inplace=True)
         df_data_concatenated["time"] -= offset_for_behavioral_time_stamps
 
-        lick_timestamps = df_data_concatenated.time.values
-        lick_positions = df_data_concatenated.position.values
+        lick_timestamps = df_data_concatenated.time.values.astype("float", copy=False)
+        lick_positions = df_data_concatenated.position.values.astype("float", copy=False)
 
         position_on_lick_series = TimeSeries(
             name="lick events",
@@ -176,22 +173,17 @@ class Wen21EventsInterface(BaseDataInterface):
         file_path_list = [path for path in file_path_list if track_label in path.name]
         df_data_list = []
         for reward_file_path in file_path_list:
-            reward_file_name = reward_file_path.name
-            file_epoch_name = reward_file_name.split("_reward")[0].partition("train1")
-            if len(file_epoch_name) > 0:
-                file_epoch_name = file_epoch_name[1:]
-
             df_data = pd.read_csv(reward_file_path, sep="\t", names=["reward_time_stamps", "x1"])
-
             df_data_list.append(df_data)
 
         df_data_concatenated = pd.concat(df_data_list)
         df_data_concatenated.sort_values(by="reward_time_stamps", inplace=True)
         df_data_concatenated["reward_time_stamps"] -= offset_for_behavioral_time_stamps
 
+        reward_timestamps = df_data_concatenated.reward_time_stamps.values.astype("float", copy=False)
         events = Events(
             name=f"reward_times",
             description="timestamps for rewards",
-            timestamps=df_data_concatenated.reward_time_stamps.values,
+            timestamps=reward_timestamps,
         )
         behavior_module.add(events)
