@@ -5,8 +5,11 @@ from datetime import datetime
 from wen21nwbconverter import Wen21NWBConverter
 from nwb_conversion_tools.utils import dict_deep_update, load_dict_from_file
 
+# To be changed in the running system
 data_path = Path("/media/heberto/TOSHIBA EXT/Wen/")
-output_path = Path("/home/heberto/nwb/")
+output_path = Path("/media/heberto/TOSHIBA EXT/nwb/")
+# output_path = Path("/home/heberto/nwb/")
+
 general_metadata_path = Path("./giocomo_lab_to_nwb/wen22/metadata.yml")
 stub_test = True
 if stub_test:
@@ -68,7 +71,7 @@ for session_path in session_path_list:
     subject_metadata_from_yaml = load_dict_from_file(general_metadata_path.with_stem("subject_metadata"))
     subject_metadata = subject_metadata_from_yaml[subject]
     metadata["Subject"] = dict_deep_update(metadata["Subject"], subject_metadata)
-    
+
     # Run conversion
     nwb_file_name = f"{session_id}.nwb"
     nwbfile_path = output_path / nwb_file_name
