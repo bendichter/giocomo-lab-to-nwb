@@ -6,7 +6,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='giocomo_lab_to_nwb',
-    version='0.1.0',
+    version='0.2.0',
     description='convert Giocomo Neuropixel data into NWB:N format',
     long_description=long_description,
     long_description_content_type='text/markdown',
